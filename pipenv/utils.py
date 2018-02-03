@@ -8,6 +8,10 @@ import shutil
 import logging
 import errno
 import click
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import crayons
 import delegator
 import parse
@@ -33,7 +37,9 @@ except ImportError:
     from pathlib2 import Path
 
 from distutils.spawn import find_executable
+from collections import namedtuple
 from contextlib import contextmanager
+import json as simplejson
 from piptools.resolver import Resolver
 from piptools.repositories.pypi import PyPIRepository
 from piptools.scripts.compile import get_pip_command
@@ -217,19 +223,34 @@ def clean_pkg_version(version):
     return six.u(pep440_version(str(version).replace('==', '')))
 
 
+version_info = namedtuple('version_info', ['major', 'minor', 'micro', 'releaselevel'])
+
+
 class HackedPythonVersion(object):
     """A Beautiful hack, which allows us to tell pip which version of Python we're using."""
-    def __init__(self, python_version, python_path):
+    def __init__(self, python_version, python_path, sys_path, sys_version, sys_version_info):
         self.python_version = python_version
         self.python_path = python_path
+        self.sys_path = sys_path
+        self.sys_version = sys_version
+        self.sys_version_info = version_info(*sys_version_info)
 
     def __enter__(self):
         os.environ['PIP_PYTHON_VERSION'] = str(self.python_version)
         os.environ['PIP_PYTHON_PATH'] = str(self.python_path)
+        self.orig_sys_path = sys.path
+        self.orig_sys_version = sys.version
+        self.orig_sys_version_info = sys.version_info
+        sys.path = self.sys_path
+        sys.version = self.sys_version
+        sys.version_info = self.sys_version_info
 
     def __exit__(self, *args):
         # Restore original Python version information.
         del os.environ['PIP_PYTHON_VERSION']
+        sys.path = self.orig_sys_path
+        sys.version = self.orig_sys_version
+        sys.version_info = self.orig_sys_version_info
 
 
 def prepare_pip_source_args(sources, pip_args=None):
@@ -256,8 +277,7 @@ def prepare_pip_source_args(sources, pip_args=None):
     return pip_args
 
 
-def actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre):
-    import pip
+def actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre, dumped_abi):
 
     class PipCommand(pip.basecommand.Command):
         """Needed for pip-tools."""
@@ -300,7 +320,15 @@ def actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, 
     pip_options, _ = pip_command.parse_args(pip_args)
 
     session = pip_command._build_session(pip_options)
-    pypi = PyPIRepository(pip_options=pip_options, session=session)
+
+    # version, impl_tag, abi, platform = dumped_abi
+    # major = version
+    # versions = []
+    # Support all previous minor Python versions.
+    # for minor in range(int(version[-1]), -1, -1):
+        # versions.append(''.join(['{0}{1}'.format(major, minor)]))
+    abi_tags = tuple((impl, tag, plat) for impl, tag, plat in [record for record in dumped_abi])
+    pypi = PyPIRepository(pip_options=pip_options, session=session, valid_tags=abi_tags)  #, versions=versions, platform=platform, abi=abi, implementation=impl_tag)
 
     if verbose:
         logging.log.verbose = True
@@ -345,24 +373,32 @@ def resolve_deps(deps, which, which_pip, project, sources=None, verbose=False, p
     backup_python_path = sys.executable
 
     results = []
+    dumped_abi = []
+    command = '{0} -c "import json; from pip.pep425tags import get_supported; print(json.dumps(get_supported()));"'.format(python_path)
+    path_version_and_info = '{0} -c "import json, sys; print(json.dumps([sys.path, sys.version, list(sys.version_info[:4])]));"'.format(python_path)
+    supported_abi = delegator.run(command)
+    path_ver_info = delegator.run(path_version_and_info)
+    internal_path, internal_version, internal_version_info = simplejson.loads(path_ver_info.out)
+    if supported_abi.return_code == 0:
+        dumped_abi = simplejson.loads(supported_abi.out)
 
     # First (proper) attempt:
-    with HackedPythonVersion(python_version=python, python_path=python_path):
+    with HackedPythonVersion(python_version=python, python_path=python_path, sys_path=internal_path, sys_version=internal_version, sys_version_info=internal_version_info):
 
         try:
-            resolved_tree, resolver = actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre)
+            resolved_tree, resolver = actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre, dumped_abi)
         except RuntimeError:
             # Don't exit here, like usual.
             resolved_tree = None
 
     # Second (last-resort) attempt:
     if resolved_tree is None:
-        with HackedPythonVersion(python_version='.'.join([str(s) for s in sys.version_info[:3]]), python_path=backup_python_path):
+        with HackedPythonVersion(python_version='.'.join([str(s) for s in sys.version_info[:3]]), python_path=backup_python_path, sys_path=internal_path, sys_version=internal_version, sys_version_info=internal_version_info):
 
             try:
                 # Attempt to resolve again, with different Python version information,
                 # particularly for particularly particular packages.
-                resolved_tree, resolver = actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre)
+                resolved_tree, resolver = actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre, dumped_abi)
             except RuntimeError:
                 sys.exit(1)
 

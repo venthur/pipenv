@@ -9,7 +9,6 @@ from shutil import rmtree
 
 from pip.download import is_file_url, url_to_path
 from pip.index import PackageFinder
-from pip.req.req_set import RequirementSet
 from pip.wheel import Wheel
 try:
     from pip.utils.hashes import FAVORITE_HASH
@@ -21,7 +20,7 @@ from ..exceptions import NoCandidateFound
 from ..utils import (fs_str, is_pinned_requirement, lookup_table,
                      make_install_requirement, pip_version_info)
 from .base import BaseRepository
-
+from .req_set import RequirementSet
 try:
     from tempfile import TemporaryDirectory  # added in 3.2
 except ImportError:
@@ -37,8 +36,9 @@ class PyPIRepository(BaseRepository):
     config), but any other PyPI mirror can be used if index_urls is
     changed/configured on the Finder.
     """
-    def __init__(self, pip_options, session):
+    def __init__(self, pip_options, session, versions=None, valid_tags=None):
         self.session = session
+        self.valid_tags = valid_tags
 
         index_urls = [pip_options.index_url] + pip_options.extra_index_urls
         if pip_options.no_index:
@@ -50,9 +50,10 @@ class PyPIRepository(BaseRepository):
             trusted_hosts=pip_options.trusted_hosts,
             allow_all_prereleases=pip_options.pre,
             process_dependency_links=pip_options.process_dependency_links,
-            session=self.session,
+            session=self.session
         )
 
+        self.finder.valid_tags = valid_tags
         # Caches
         # stores project_name => InstallationCandidate mappings for all
         # versions reported by PyPI, so we only have to ask once for each
@@ -149,7 +150,8 @@ class PyPIRepository(BaseRepository):
                                     download_dir=download_dir,
                                     wheel_download_dir=self._wheel_download_dir,
                                     session=self.session,
-                                    ignore_installed=True)
+                                    ignore_installed=True,
+                                    valid_tags=self.valid_tags)
             result = reqset._prepare_file(self.finder, ireq)
             self._dependencies_cache[ireq] = result
         return set(self._dependencies_cache[ireq])
