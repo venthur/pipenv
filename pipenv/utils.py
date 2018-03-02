@@ -223,7 +223,7 @@ def clean_pkg_version(version):
     return six.u(pep440_version(str(version).replace('==', '')))
 
 
-version_info = namedtuple('version_info', ['major', 'minor', 'micro', 'releaselevel'])
+VERSION_INFO = namedtuple('version_info', ['major', 'minor', 'micro', 'releaselevel'])
 
 
 class HackedPythonVersion(object):
@@ -233,7 +233,7 @@ class HackedPythonVersion(object):
         self.python_path = python_path
         self.sys_path = sys_path
         self.sys_version = sys_version
-        self.sys_version_info = version_info(*sys_version_info)
+        self.sys_version_info = VERSION_INFO(*sys_version_info)
 
     def __enter__(self):
         os.environ['PIP_PYTHON_VERSION'] = str(self.python_version)
@@ -278,6 +278,7 @@ def prepare_pip_source_args(sources, pip_args=None):
 
 
 def actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, verbose, clear, pre, dumped_abi):
+    import pip
 
     class PipCommand(pip.basecommand.Command):
         """Needed for pip-tools."""
@@ -321,14 +322,11 @@ def actually_resolve_reps(deps, index_lookup, markers_lookup, project, sources, 
 
     session = pip_command._build_session(pip_options)
 
-    # version, impl_tag, abi, platform = dumped_abi
-    # major = version
-    # versions = []
     # Support all previous minor Python versions.
     # for minor in range(int(version[-1]), -1, -1):
         # versions.append(''.join(['{0}{1}'.format(major, minor)]))
     abi_tags = tuple((impl, tag, plat) for impl, tag, plat in [record for record in dumped_abi])
-    pypi = PyPIRepository(pip_options=pip_options, session=session, valid_tags=abi_tags)  #, versions=versions, platform=platform, abi=abi, implementation=impl_tag)
+    pypi = PyPIRepository(pip_options=pip_options, session=session, valid_tags=abi_tags)
 
     if verbose:
         logging.log.verbose = True
