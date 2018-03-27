@@ -306,14 +306,12 @@ class TestPipenv:
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 tablib = "*"
 
 [dev-packages]
 records = "*"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
             c = p.pipenv('install')
             assert c.return_code == 0
@@ -332,11 +330,9 @@ records = "*"
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 tablib = "*"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
             c = p.pipenv('install')
             assert c.return_code == 0
@@ -511,11 +507,9 @@ setup(
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 tablib = "<0.12"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
             c = p.pipenv('install')
             assert c.return_code == 0
@@ -531,13 +525,11 @@ tablib = "<0.12"
             with PipenvInstance(pypi=pypi) as p:
                 with open(p.pipfile_path, 'w') as f:
                     contents = """
-{source}
-
 [packages]
 requests = "*"
 records = "*"
 tpfd = "*"
-                    """.format(source=pypi.as_source_entry()).strip()
+                    """.strip()
                     f.write(contents)
 
                 c = p.pipenv('install')
@@ -561,13 +553,11 @@ tpfd = "*"
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 requests = "*"
 records = "*"
 tpfd = "*"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('install --sequential')
@@ -611,11 +601,9 @@ tpfd = "*"
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
-requests = {{ version = "*", markers="os_name=='splashwear'" }}
-                """.format(source=pypi.as_source_entry()).strip()
+requests = {version = "*", markers="os_name=='splashwear'"}
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('install')
@@ -635,11 +623,9 @@ requests = {{ version = "*", markers="os_name=='splashwear'" }}
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
-requests = {{ version = "*", os_name = "== 'splashwear'" }}
-                """.format(source=pypi.as_source_entry()).strip()
+requests = {version = "*", os_name = "== 'splashwear'"}
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('install')
@@ -659,12 +645,10 @@ requests = {{ version = "*", os_name = "== 'splashwear'" }}
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 apscheduler = "*"
-funcsigs = {{ version = "*", os_name = "== 'splashwear'" }}
-                """.format(source=pypi.as_source_entry()).strip()
+funcsigs = {version = "*", os_name = "== 'splashwear'"}
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('install')
@@ -685,12 +669,10 @@ funcsigs = {{ version = "*", os_name = "== 'splashwear'" }}
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 apscheduler = "*"
 funcsigs = "*"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('install')
@@ -722,11 +704,9 @@ funcsigs = "*"
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
-requests = {{version = "*"}}
-                """.format(source=pypi.as_source_entry()).strip()
+requests = {version = "*"}
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('install')
@@ -942,12 +922,11 @@ import records
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
 [packages]
 requests = "==2.14.0"
 [dev-packages]
 flask = "==0.12.2"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
 
             req_list = ("requests==2.14.0")
@@ -1008,11 +987,9 @@ requests = {git = "https://github.com/requests/requests", egg = "requests"}
         with PipenvInstance(pypi=pypi) as p:
             with open(p.pipfile_path, 'w') as f:
                 contents = """
-{source}
-
 [packages]
 maya = "*"
-                """.format(source=pypi.as_source_entry()).strip()
+                """.strip()
                 f.write(contents)
 
             c = p.pipenv('lock')
