@@ -1144,7 +1144,7 @@ requests = "==2.14.0"
             with open(p.pipfile_path, 'w') as f:
                 f.write("""
 [[source]]
-url = 'https://${PYPI_USERNAME}:${PYPI_PASSWORD}@pypi.python.org/simple'
+url = '{protocol}://${{PYPI_USERNAME}}:${{PYPI_PASSWORD}}@{host}:{port}/simple'
 verify_ssl = true
 name = 'pypi'
 
@@ -1153,23 +1153,31 @@ python_version = '2.7'
 
 [packages]
 flask = "==0.12.2"
-""")
+""".format(protocol=pypi.protocol, host=pypi.host, port=pypi.port))
             monkeypatch.setitem(os.environ, 'PYPI_USERNAME', 'whatever')
             monkeypatch.setitem(os.environ, 'PYPI_PASSWORD', 'pass')
-            assert Project().get_lockfile_hash() is None
+
+            project = Project()
+            assert project.get_lockfile_hash() is None
+
             c = p.pipenv('install')
-            lock_hash = Project().get_lockfile_hash()
+            assert c.return_code == 0
+
+            lock_hash = project.get_lockfile_hash()
             assert lock_hash is not None
-            assert lock_hash == Project().calculate_pipfile_hash()
+            assert lock_hash == project.calculate_pipfile_hash()
+
             # sanity check on pytest
             assert 'PYPI_USERNAME' not in str(pipfile.load(p.pipfile_path))
-            assert c.return_code == 0
-            assert Project().get_lockfile_hash() == Project.calculate_pipfile_hash()
+
+            assert project.get_lockfile_hash() == project.calculate_pipfile_hash()
+
             monkeypatch.setitem(os.environ, 'PYPI_PASSWORD', 'pass2')
-            assert Project().get_lockfile_hash() == Project.calculate_pipfile_hash()
+            assert project.get_lockfile_hash() == project.calculate_pipfile_hash()
+
             with open(p.pipfile_path, 'a') as f:
                 f.write('requests = "==2.14.0"\n')
-            assert Project().get_lockfile_hash() != Project.calculate_pipfile_hash()
+            assert project.get_lockfile_hash() != project.calculate_pipfile_hash()
 
     @pytest.mark.run
     def test_scripts_basic(self):
@@ -1177,7 +1185,7 @@ flask = "==0.12.2"
             with open(p.pipfile_path, 'w') as f:
                 f.write("""
 [scripts]
-printfoo = "python -c print('foo')"
+printfoo = "python -c print(42)"
                 """)
 
             c = p.pipenv('install')
@@ -1185,17 +1193,17 @@ printfoo = "python -c print('foo')"
 
             c = p.pipenv('run printfoo')
             assert c.return_code == 0
-            assert c.out == 'foo\n'
+            assert c.out == '42\n'
             assert c.err == ''
 
     @pytest.mark.run
-    @pytest.mark.skip(reason='This fails on Windows (not sure about POSIX).')
+    @pytest.mark.skipif(os.name == 'nt', reason='shlex cannot handle quoting on Windows.')
     def test_scripts_quoted(self):
         with PipenvInstance(chdir=True) as p:
             with open(p.pipfile_path, 'w') as f:
                 f.write("""
 [scripts]
-printfoo = "python -c print('foo')"
+printfoo = "python -c \\"print('foo')\\""
                 """)
 
             c = p.pipenv('install')
