@@ -37,7 +37,6 @@ from .environments import (
     PIPENV_PIPFILE,
     PIPENV_VENV_IN_PROJECT,
     PIPENV_VIRTUALENV,
-    PIPENV_NO_INHERIT,
     PIPENV_TEST_INDEX,
     PIPENV_PYTHON,
 )
@@ -336,7 +335,6 @@ class Project(object):
             contents = f.read()
 
         return self._parse_pipfile(contents)
-
 
     def clear_pipfile_cache(self):
         """Clear pipfile cache (e.g., so we can mutate parsed pipfile)"""
