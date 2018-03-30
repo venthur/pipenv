@@ -1,4 +1,4 @@
-pipenv (11.9-1) unstable; urgency=medium
+pipenv (11.9.0-1) unstable; urgency=medium
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 
