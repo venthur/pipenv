@@ -1,0 +1,41 @@
+Source: pipenv
+Section: python
+Priority: optional
+Maintainer: Python Applications Packaging Team <python-apps-team@lists.alioth.debian.org>
+Uploaders: Bastian Venthur <venthur@debian.org>
+Build-Depends: debhelper (>= 10),
+    dh-python,
+    python3-all,
+    python3-setuptools,
+    python3-pytest,
+    python3-mock,
+    python3-pytest-xdist,
+    python3-certifi,
+    python3-virtualenv,
+    python3-pip,
+    python3-wheel,
+    python3-virtualenv-clone
+Standards-Version: 4.1.2
+Homepage: https://github.com/pypa/pipenv
+X-Python3-Version: >= 3.2
+#Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/pipenv.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/pipenv.git/
+#Testsuite: autopkgtest-pkg-python
+
+Package: pipenv
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Suggests: python-pipenv-doc
+Description: <insert up to 60 chars description> (Python 3)
+ <insert long description, indented with spaces>
+ .
+ This package installs the library for Python 3.
+
+Package: python-pipenv-doc
+Architecture: all
+Section: doc
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description> (common documentation)
+ <insert long description, indented with spaces>
+ .
+ This is the common documentation package.
