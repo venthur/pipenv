@@ -25,7 +25,7 @@ Vcs-Browser: https://salsa.debian.org/python-team/applications/pipenv
 Package: pipenv
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends}
-Suggests: python-pipenv-doc
+#Suggests: python-pipenv-doc
 Description: Python's officially recommended packaging tool
  Pipenv is the officially recommended Python packaging tool from Python.org.
  .
@@ -36,13 +36,11 @@ Description: Python's officially recommended packaging tool
  generates the ever–important Pipfile.lock, which is used to produce
  deterministic builds.
 
-
-
-Package: python-pipenv-doc
-Architecture: all
-Section: doc
-Depends: ${sphinxdoc:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description> (common documentation)
- <insert long description, indented with spaces>
- .
- This is the common documentation package.
+#Package: python-pipenv-doc
+#Architecture: all
+#Section: doc
+#Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+#Description: <insert up to 60 chars description> (common documentation)
+# <insert long description, indented with spaces>
+# .
+# This is the common documentation package.
