@@ -23,8 +23,10 @@ Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
 Last-Update: 2018-03-24
 
---- pipenv-11.9.orig/tests/test_vendor.py
-+++ pipenv-11.9/tests/test_vendor.py
+Index: pipenv/tests/test_vendor.py
+===================================================================
+--- pipenv.orig/tests/test_vendor.py
++++ pipenv/tests/test_vendor.py
 @@ -8,7 +8,7 @@ from prettytoml.elements.metadata import
      WhitespaceElement, PunctuationElement, CommentElement
  )
