@@ -26,6 +26,7 @@ required = [
     'requests[security];python_version<"3.0"',
     'ordereddict;python_version<"3.0"',
     'jinja2',
+    'semver',
 ]
 
 
