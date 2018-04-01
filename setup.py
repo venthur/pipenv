@@ -25,6 +25,7 @@ required = [
     'pathlib;python_version<"3.4"',
     'requests[security];python_version<"3.0"',
     'ordereddict;python_version<"3.0"',
+    'jinja2',
 ]
 
 
